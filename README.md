@@ -1,2 +1,94 @@
 # VBA-challenge
 Homework assignment 2
+
+Please see VBA code below:
+
+Sub Calculate_Stock_Data()
+
+    Application.ScreenUpdating = False
+
+    Dim i, a, lastrow, tickerRow, yearChangerow As Long
+    Dim open_price, open_price1, open_price2, close_price, yearly_change, volume_of_stock, volume_total
+    Dim ticker_symbol, signal As String
+    Dim ws As Worksheet
+    
+    For Each ws In ThisWorkbook.Sheets
+        ws.Activate
+    
+    Set ws = ThisWorkbook.ActiveSheet
+    lastrow = ws.Cells(Rows.Count, 1).End(xlUp).Row + 1
+    ws.Range("I1:L1").Value = Array("Ticker", "Yearly Change", "Percent Change", "Total Stock Volume")
+    
+    For i = 2 To lastrow
+    
+        a = i - 1
+        
+        open_price = ws.Cells(i, 3).Value
+        close_price = ws.Cells(a, 6).Value
+        ticker_symbol = ws.Cells(i, 1).Value
+        volume_of_stock = ws.Cells(i, 7).Value
+    
+        If i = 2 Then
+        
+            volume_total = volume_of_stock
+
+        Else
+        
+            volume_total = volume_total + volume_of_stock
+            
+        End If
+    
+        If ws.Cells(i, 1).Value <> ws.Cells(a, 1).Value Then
+        
+            yearChangerow = ws.Cells(Rows.Count, 10).End(xlUp).Row + 1
+            tickerRow = ws.Cells(Rows.Count, 9).End(xlUp).Row + 1
+            
+            open_price1 = open_price2
+            open_price2 = open_price
+            
+            ws.Cells(tickerRow, 9).Value = ticker_symbol
+                
+                If close_price <> "<close>" Then
+                
+                    volume_total = volume_total - volume_of_stock
+                    yearly_change = close_price - open_price1
+                    ws.Cells(yearChangerow, 10).Value = yearly_change
+                    ws.Cells(yearChangerow, 11).Value = yearly_change / open_price1
+                    ws.Cells(yearChangerow, 12).Value = volume_total
+                    volume_total = volume_of_stock
+                    
+                Else: End If
+            
+        End If
+            
+    Next i
+    
+    lastrow = ws.Cells(Rows.Count, 10).End(xlUp).Row
+    
+    ws.Range("J2:J" & lastrow).FormatConditions.Add Type:=xlCellValue, Operator:=xlLess, Formula1:="=0"
+    ws.Range("J2:J" & lastrow).FormatConditions(1).Interior.Color = vbRed
+    ws.Range("J2:J" & lastrow).FormatConditions.Add Type:=xlCellValue, Operator:=xlGreater, Formula1:="=0"
+    ws.Range("J2:J" & lastrow).FormatConditions(2).Interior.Color = vbGreen
+    
+    ws.Range("O2").Value = "Greatest % Increase"
+    ws.Range("O3").Value = "Greatest % Decrease"
+    ws.Range("O4").Value = "Greatest Total Volume"
+    ws.Range("P1:Q1").Value = Array("Ticker", "Value")
+    
+    ws.Range("P2").Formula = "=INDEX(I:I, MATCH(MAX(K:K),K:K,0))"
+    ws.Range("Q2").Formula = "=MAX(K:K)"
+    ws.Range("P3").Formula = "=INDEX(I:I, MATCH(MIN(K:K),K:K,0))"
+    ws.Range("Q3").Formula = "=MIN(K:K)"
+    ws.Range("P4").Formula = "=INDEX(I:I, MATCH(MAX(L:L),L:L,0))"
+    ws.Range("Q4").Formula = "=MAX(L:L)"
+    ws.Range("P2:Q4").Value = ws.Range("P2:Q4").Value
+    ws.Range("Q2:Q3").NumberFormat = "0.00%"
+    ws.Columns("I:Q").AutoFit
+    
+    Next
+    
+    Set ws = Nothing
+    
+    Application.ScreenUpdating = True
+
+End Sub
